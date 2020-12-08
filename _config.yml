@@ -9,7 +9,7 @@ subtitle:
 description:
 author: John Doe
 # Support language: de, en, fr-FR, id, ja, ko, pt-BR, pt, ru, zh-Hans, zh-hk, zh-tw
-language: en
+language: zh-Hans 
 date_format: '%Y-%m-%d'
 
 # URL
@@ -151,8 +151,8 @@ menu_icons:
 # ---------------------------------------------------------------
 
 # Schemes
-scheme: Muse
-#scheme: Mist
+# scheme: Muse
+scheme: Mist
 #scheme: Pisces
 
 
@@ -736,3 +736,10 @@ images: assets/images
 
 # Theme version
 version: 5.1.1
+
+
+plantuml:
+  plantuml_jar: _bin/plantuml.jar     # path to plantuml jar
+  tmp_folder: _plantuml               # tmp folder to put generated image files
+#  dot_exe: /usr/bin/dot   # [optional] path to Graphviz dot execution
+  background_color: white             # [optional] UML image background color
