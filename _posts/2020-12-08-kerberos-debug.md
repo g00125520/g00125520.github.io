@@ -1,6 +1,6 @@
 ---
 title: Kerberos认证失败问题定位
-description: reactive micro servive
+description: analyze a kerberos authorize failed
 categories:
   - micro-service
 tags:
