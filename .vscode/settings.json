@@ -1,4 +1,10 @@
 {
 	"markdown-pdf.executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-	"java.home": "E:\\shumeng\\tools\\jdk-11.0.1"
+	"java.home": "E:\\shumeng\\tools\\jdk-11.0.1",
+	"workbench.editorAssociations": [
+    	{
+    	    "viewType": "hediet.vscode-drawio-text",
+    	    "filenamePattern": "*.svg"
+    	}
+	],
 }
