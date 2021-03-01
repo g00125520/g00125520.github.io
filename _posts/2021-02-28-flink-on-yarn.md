@@ -23,13 +23,13 @@ flink可通过如下三种模式执行应用：应用模式，单任务模式和
 
 单任务模式首先在yarn上启动一个flink集群，并在本地运行应用的jar包，最后提交任务图到集群上的任务管理器。任务结束后，集群也同时停止。提交任务：./bin/flink run -t yarn-per-job --detached ./examples/streaming/TopSpeedWindowing.jar；任务列表：./bin/flink list -t yarn-per-job -Dyarn.application.id=application_XXXX_YY；取消任务：./bin/flink cancel -t yarn-per-job -Dyarn.application.id=application_XXXX_YY <jobId>。
 
-会话模式需首先启动flink集群，export HADOOP_CLASSPATH=`hadoop classpath`;./bin/yarn-session.sh --detached;./bin/flink run ./examples/streaming/TopSpeedWindowing.jar;echo "stop" | ./bin/yarn-session.sh -id application_XXXXX_XXX;会话模式会创建一个隐藏文件： /tmp/.yarn-properties-<username>，后续提交任务会通过该文件获取集群属性，当然也可手工指定：./bin/flink run -t yarn-session -Dyarn.application.id=application_XXXX_YY ./examples/streaming/TopSpeedWindowing.jar
+会话模式需首先启动flink集群，export HADOOP_CLASSPATH=`hadoop classpath`;./bin/yarn-session.sh --detached;./bin/flink run ./examples/streaming/TopSpeedWindowing.jar;echo "stop" \| ./bin/yarn-session.sh -id application_XXXXX_XXX;会话模式会创建一个隐藏文件： /tmp/.yarn-properties-<username>，后续提交任务会通过该文件获取集群属性，当然也可手工指定：./bin/flink run -t yarn-session -Dyarn.application.id=application_XXXX_YY ./examples/streaming/TopSpeedWindowing.jar
 
 ## faq
 
 在wsl中通过：sbin/start-dfs.sh启动hdfs时，出现： java.net.SocketException: Permission denied异常，服务使用50070的默认端口，并非<1024的限制端口，使用administrator运行wsl一样不行。原来windows平台上面的Hyper-V禁用了该端口，可以通过：netsh interface ipv4 show excludedportrange protocol=tcp进行查看，发现50070被限制了：50060-500159。一方面可以通过修改：hdfs-site.xml中的属性：dfs.http.address，指定非限制端口，如：5070；另外可以通过如下操作取消限制：1，禁用Hyper-V，dism.exe /Online /Disable-Feature:Microsoft-Hyper-V；2，重启并增加端口，netsh int ipv4 add excludedportrange protocol=tcp startport=50070 numberofports=1；3启用Hyper-V，dism.exe /Online /Enable-Feature:Microsoft-Hyper-V /All
 
-如果通过wsl在移动硬盘上面进行操作，则需要首先将移动硬盘挂载到wsl中，mkdir /mnt/f，sudo mount -t drvfs f: /mnt/f -o metadata，注意，只有添加了- o参数，wsl中才可以通过chmod修改文件权限，否则，chmod不生效。如果挂载中出现device is busy之类得错误，则lsof | grep /mnt/f; kill -9 ; umount /mnt/f等操作，删除占用设备得进程，重新mount。
+如果通过wsl在移动硬盘上面进行操作，则需要首先将移动硬盘挂载到wsl中，mkdir /mnt/f，sudo mount -t drvfs f: /mnt/f -o metadata，注意，只有添加了- o参数，wsl中才可以通过chmod修改文件权限，否则，chmod不生效。如果挂载中出现device is busy之类得错误，则lsof \| grep /mnt/f; kill -9 ; umount /mnt/f等操作，删除占用设备得进程，重新mount。
 
 可通过hdfs dfs -getfacl /查看目录权限，hdfs dfs -setfacl -m user:root:rwx /设置目录权限。
 
