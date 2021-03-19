@@ -41,6 +41,8 @@ tcc对业务的侵入性强，使用成本非常昂贵，虽然提供了更灵�
 
 saga模型是把一个分布式事务拆分为多个本地事务，每个本地事务都有相应的执行模块和补偿模块（对应tcc的confirm和cancel），当saga事务中任意一个本地事务出错时，可以调用相关的补偿方法恢复之前的事务，达到事务最终一致性。saga模型主要分，1，一串子事务（本地事务）的事务链；2，每个saga子事务tn都有对应的补偿定义cn用于撤销tn造成的结果；3，每个tn都没有预留动作，直接提交到库。执行顺序为t1-tn，或者中间j出错后撤销之前所有的t。数据的隔离性，通过业务层控制并发，在应用层加锁，应用层预先冻结资源等。恢复方式有，1，向后恢复，如任一子事务失败，则补偿所有已完成的事务；2，向前恢复，重试失败的事务，假设每个子事务最终都会成功。从saga模型定义中，其可以满足事务的三个特性，1，原子性，saga协调器协调事务链中的本地事务，要么全部提交，要么全部回滚；2，一致性，saga事务可以实现最终一致性；3，持久性，基于本地事务实现。saga无法保证外部的原子性和隔离性因为可以查看其他sagas的部分结果。
 
+saga执行事务的顺序称为saga的协调逻辑。有两种模式：编排(Choreography)和控制(Orchestration)。编排(Choreography)：子事务之间的调用、分配、决策和排序通过交换事件进行，是一种去中心化的模式，参与者之间通过消息机制进行沟通，通过监听器的方式监听其他参与者发出的消息，从而执行后续逻辑处理。没有中间协调点，靠参与者自己进行协调。控制(Orchestration)：saga提供一个控制类，方便参与者之间的协调。事务执行的命令从控制类发起，按照逻辑顺序请求saga的参与者，从参与者那里接收到反馈后，控制类再发起向其他参与者的调用。所有子事务都围绕控制类进行沟通和协调。
+
 saga和tcc一样，都是强依靠业务改造，同样要求业务方在设计上遵循：允许空补偿，保持幂等性，防止资源悬挂；和tcc比，saga没有try，直接commit，所以会留下原始事务操作的痕迹，cancel属于不完美补偿，需要考虑对业务的影响。tcc的cancel是完美补偿的rollback，补偿操作会彻底清理之前的原始事务操作，用户是感知不到事务取消之前的状态信息。saga的补偿操作通常可以异步执行，tcc的cancel和confirm可以根据需要异步化。saga对业务侵入较小，只需要提供一个逆向操作的cancel即可，而tcc需要对业务进行进行全局性的流程改造。tcc最少通信次数为2n，而saga为n（n为子事务数量）。
 
 目前业界saga的实现方式有：1，基于业务逻辑层proxy设计，基于aop实现，比如华为的servicecomb；2，状态机实现的机制，比如阿里的seata的saga模式。
@@ -63,4 +65,4 @@ mq事务消息方案，需要mq支持半消息机制或者类似特性，在重�
 
 从参与者来说，最大努力通知事务适用于跨平台，跨企业的系统间业务交互，事务消息更适用于同网络体系的内部服务交付；从消息层面来说，最大努力通知事务需要主动推送并提供多档次时间的重试机制来保证数据的通知，而事务消息只需要消息消费者主动消费；从数据层面来说，最大努力通知事务还需要额外的定期校验机制对数据进行兜底，保证数据的最终一致性，而事务消息只要保证消息的可靠投递即可，自身无需对数据进行兜底处理。最大努力通知事务本质是通过引入定期校验机制来对最终一致性兜底，对业务侵入较低，适合于对最终一致性敏感度比较低，业务链路较短的场景。
 
-[saga](https://www.jianshu.com/p/e4b662407c66?from=timeline&isappinstalled=0) | [2pc&3pc](https://www.jianshu.com/p/dd6a340e50b2) | [tcc](https://www.cnblogs.com/jajian/p/10014145.html) | [xa](https://blog.csdn.net/wuzhiwei549/article/details/79925618) | [可靠消息最终一致性](https://www.cnblogs.com/haizai/p/11954339.html) | [seata设计原理](https://yq.aliyun.com/articles/715556?spm=a2c4e.11157919.spm-cont-list.23.3b31f2047Bulkr) | [seata](https://github.com/seata/seata) | [txc](http://arick.net/content/46) | [JTA原理与实现](https://developer.ibm.com/zh/articles/j-lo-jta/) | [xa of seata](http://seata.io/zh-cn/blog/seata-xa-introduce.html)
+[fescar](https://mp.weixin.qq.com/s/TFGRcHV6EgeLB45OEJPRXw) | [saga](https://www.jianshu.com/p/e4b662407c66?from=timeline&isappinstalled=0) | [2pc&3pc](https://www.jianshu.com/p/dd6a340e50b2) | [tcc](https://www.cnblogs.com/jajian/p/10014145.html) | [xa](https://blog.csdn.net/wuzhiwei549/article/details/79925618) | [可靠消息最终一致性](https://www.cnblogs.com/haizai/p/11954339.html) | [seata设计原理](https://yq.aliyun.com/articles/715556?spm=a2c4e.11157919.spm-cont-list.23.3b31f2047Bulkr) | [seata](https://github.com/seata/seata) | [txc](http://arick.net/content/46) | [JTA原理与实现](https://developer.ibm.com/zh/articles/j-lo-jta/) | [xa of seata](http://seata.io/zh-cn/blog/seata-xa-introduce.html)
